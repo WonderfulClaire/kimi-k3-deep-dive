@@ -4,18 +4,28 @@
 
 ## 总览：一张图看懂 K3 的堆料思路
 
-```
-                 ┌─ 序列方向：KDA（线性注意力打底）+ Gated MLA → 撑起 1M 上下文
- 2.8T 参数 ──────┤
-                 ├─ 深度方向：AttnRes → 跨层"选择性回读"，防深模型信息衰减
-                 │
-                 └─ 宽度方向：Stable LatentMoE → 896 专家选 16，极限稀疏
-                       └─ 配套：Quantile Balancing（路由）+ 全平衡专家并行（训练）
- 训练稳定性 ─────── Per-Head Muon（优化器）+ SiTU（激活函数）
- 部署可行性 ─────── MXFP4 权重 + MXFP8 激活（SFT 起量化感知训练）
+```mermaid
+flowchart LR
+    K3(["🧠 Kimi K3<br/>2.8T 参数"]):::root
+
+    K3 --> SEQ["📏 序列方向<br/>KDA 线性注意力打底 + Gated MLA<br/>→ 撑起 1M 上下文"]:::axis
+    K3 --> DEP["🪜 深度方向<br/>AttnRes 跨层“选择性回读”<br/>→ 防深模型信息衰减"]:::axis
+    K3 --> WID["🧩 宽度方向<br/>Stable LatentMoE：896 专家选 16<br/>→ 极限稀疏"]:::axis
+    WID -.配套.-> QB["Quantile Balancing 路由<br/>+ 全平衡专家并行训练"]:::sub
+
+    K3 --> STA["🛡️ 训练稳定性<br/>Per-Head Muon 优化器 + SiTU 激活函数"]:::support
+    K3 --> DPL["📦 部署可行性<br/>MXFP4 权重 + MXFP8 激活<br/>（SFT 起量化感知训练）"]:::support
+
+    SEQ & DEP & WID & STA & DPL ==> RES(["⚡ 整体 scaling 效率<br/>较 K2 提升约 2.5×"]):::result
+
+    classDef root fill:#6366f1,stroke:#4338ca,color:#ffffff,font-weight:bold
+    classDef axis fill:#0ea5e9,stroke:#0369a1,color:#ffffff
+    classDef sub fill:#e0f2fe,stroke:#0369a1,color:#0c4a6e
+    classDef support fill:#10b981,stroke:#047857,color:#ffffff
+    classDef result fill:#f59e0b,stroke:#b45309,color:#1f2937,font-weight:bold
 ```
 
-官方口径：这些改动叠加后，**整体 scaling 效率比 K2 提升约 2.5×**——即同样算力换来更多"智能"。
+官方口径：这些改动叠加后，**整体 scaling 效率比 K2 提升约 2.5×**——即同样算力换来更多“智能”。
 
 ---
 

@@ -2,14 +2,14 @@
 
 > **2.8 万亿参数、100 万 token 上下文、全球首个开源 3T 级模型** —— 月之暗面 Kimi K3 完全解读。
 >
-> 📅 **权重开源倒计时：官方承诺 2026-07-27 前放出完整权重**，本仓库持续追更（权重、License、技术报告、vLLM 支持、社区量化），Watch 本仓库第一时间获取更新。
+> 📅 **权重开源倒计时：官方已官宣 2026-07-27 当天正式发布完整权重**（HF 仓库页已挂倒计时），本仓库持续追更（权重、License、技术报告、vLLM 支持、社区量化），Watch 本仓库第一时间获取更新。
 
-[![Weights](https://img.shields.io/badge/%E6%9D%83%E9%87%8D-7%2F27%20%E5%89%8D%E5%BC%80%E6%BA%90-orange)](https://huggingface.co/moonshotai/Kimi-K3)
+[![Weights](https://img.shields.io/badge/%E6%9D%83%E9%87%8D-7%2F27%20%E5%AE%98%E5%AE%A3%E5%8F%91%E5%B8%83-orange)](https://huggingface.co/moonshotai/Kimi-K3)
 [![Context](https://img.shields.io/badge/%E4%B8%8A%E4%B8%8B%E6%96%87-1M%20tokens-blue)](#三分钟看懂-kimi-k3)
 [![Params](https://img.shields.io/badge/%E5%8F%82%E6%95%B0-2.8T%20(MoE%2016%2F896)-purple)](docs/architecture.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](#参与贡献)
 
-**中文** ｜ 信息核对至 2026-07-25，一手来源见每篇文末（官方博客 / HF / Artificial Analysis / Vals）
+**中文** ｜ 信息核对至 2026-07-25（晚间），一手来源见每篇文末（官方博客 / HF / Artificial Analysis / Vals）
 
 ---
 
@@ -17,7 +17,7 @@
 
 | 维度 | Kimi K3 | 一句话点评 |
 | --- | --- | --- |
-| 发布时间 | 2026-07-16（WAIC 前夕） | 权重承诺 **7/27 前**全量开源 |
+| 发布时间 | 2026-07-16（WAIC 前夕） | 权重**官宣 7/27 当天**全量开源 |
 | 总参数 | **2.8T**（全球最大开源模型） | 比 DeepSeek V4 Pro 大约 75% |
 | 激活方式 | MoE 稀疏激活：**896 选 16** 专家 | 每 token 不用全部参数，算力可控 |
 | 上下文 | **1M tokens**（1,048,576） | 约 K2.6（256K）的 4 倍 |
@@ -79,12 +79,16 @@ print(resp.choices[0].message.content)
 | --- | --- | --- |
 | 模型发布（API 可用） | ✅ 2026-07-16 | 07-16 |
 | HF 仓库页 + LICENSE 上线 | ✅ [moonshotai/Kimi-K3](https://huggingface.co/moonshotai/Kimi-K3) | 07-25 核对 |
-| 完整权重放出 | ⏳ 官方承诺 07-27 前 | 追更中 |
-| 技术报告 | ⏳ 随权重发布 | 追更中 |
+| 完整权重放出 | ⏳ **官宣 07-27 当天发布**，HF 页已挂倒计时 | 07-25 更新 |
+| 技术报告 | ⏳ 官方确认将发布（架构设计、训练细节、评估结果） | 07-25 更新 |
 | vLLM KDA（含 prefill cache）合入 | ⏳ 随权重发布 | 追更中 |
 | 社区量化 / 本地推理探索 | ⏳ 等权重 | 追更中 |
 
 ---
+
+## 🌍 English TL;DR
+
+This is a **Chinese-language deep dive** into Kimi K3 — the 2.8T-parameter MoE model (16-of-896 experts, 1M context) that Moonshot AI has **confirmed will be open-weighted on July 27, 2026** (countdown live on [HF](https://huggingface.co/moonshotai/Kimi-K3)). Covers architecture (KDA / AttnRes / Stable LatentMoE / MXFP4), benchmark caveats, API quickstart (incl. the `reasoning_content` round-trip pitfall), self-hosting hardware math (~1.4 TB raw weights, 64+ accelerators), and official limitations. All facts dated and sourced. Star ⭐ to follow the weights-release tracking.
 
 ## 🤝 参与贡献
 

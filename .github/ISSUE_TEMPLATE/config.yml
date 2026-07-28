@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Kimi K3 官方博客
+    url: https://www.kimi.com/blog/kimi-k3
+    about: 架构、跑分、可用性的一手信息以官方为准
+  - name: HF 官方仓库（moonshotai/Kimi-K3）
+    url: https://huggingface.co/moonshotai/Kimi-K3
+    about: 权重、License、技术报告的唯一官方来源，认准这个组织

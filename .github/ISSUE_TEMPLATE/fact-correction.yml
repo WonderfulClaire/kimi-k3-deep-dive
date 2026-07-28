@@ -1,0 +1,39 @@
+name: 事实勘误
+description: 指出文中的事实错误、过时数据或失效链接
+title: "[勘误] "
+labels: ["勘误"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢帮忙纠错。本仓库所有结论都要求可追溯来源，所以请务必附上一手链接——没有来源的勘误很难被采纳，还望理解。
+  - type: input
+    id: location
+    attributes:
+      label: 出错位置
+      description: 哪篇文档、哪个小节或哪一行
+      placeholder: 例：docs/architecture.md · 第 3 节 Stable LatentMoE
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: 当前写法
+      description: 把原文有问题的那句话贴过来
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: 正确的说法
+      description: 你认为应该改成什么
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: 来源链接
+      description: 官方博客 / 技术报告 / HF / 第三方评测的原始地址
+      placeholder: https://
+    validations:
+      required: true

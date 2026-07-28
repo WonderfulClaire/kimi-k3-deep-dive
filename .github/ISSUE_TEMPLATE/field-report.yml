@@ -1,0 +1,45 @@
+name: 实测数据投稿
+description: 分享 K3 的自部署 / 推理 / 量化实测结果（权重放出后最缺这个）
+title: "[实测] "
+labels: ["实测数据"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        权重落地后，第一手的部署和推理数据最有价值，也最容易被收进正文（会署名）。硬件、软件版本、具体数字写得越细越好，方便别人复现。
+  - type: dropdown
+    id: category
+    attributes:
+      label: 数据类型
+      options:
+        - 显存 / 硬件占用
+        - 推理吞吐 / 延迟
+        - 量化效果（精度 vs 体积）
+        - vLLM / 推理框架适配
+        - 国产卡 / 非 NVIDIA 硬件
+        - 其他
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: 环境
+      description: 卡型号与数量、互联方式、推理框架及版本、量化格式
+      placeholder: |
+        例：8×H200 NVLink · vLLM x.y.z · MXFP4 权重
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: 实测结果
+      description: 关键数字，最好带上测试方法和负载
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 踩坑 / 备注
+      description: 配置调优、报错、和官方口径的出入等
+    validations:
+      required: false

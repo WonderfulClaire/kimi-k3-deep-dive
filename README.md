@@ -7,7 +7,10 @@
 [![Weights](https://img.shields.io/badge/%E6%9D%83%E9%87%8D-7%2F27%20%E5%AE%98%E5%AE%A3%E5%8F%91%E5%B8%83-orange)](https://huggingface.co/moonshotai/Kimi-K3)
 [![Context](https://img.shields.io/badge/%E4%B8%8A%E4%B8%8B%E6%96%87-1M%20tokens-blue)](#三分钟看懂-kimi-k3)
 [![Params](https://img.shields.io/badge/%E5%8F%82%E6%95%B0-2.8T%20(MoE%2016%2F896)-purple)](docs/architecture.md)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](#参与贡献)
+[![Release](https://img.shields.io/github/v/release/WonderfulClaire/kimi-k3-deep-dive?label=release)](https://github.com/WonderfulClaire/kimi-k3-deep-dive/releases)
+[![License](https://img.shields.io/github/license/WonderfulClaire/kimi-k3-deep-dive)](LICENSE)
+[![Stars](https://img.shields.io/github/stars/WonderfulClaire/kimi-k3-deep-dive?style=social)](https://github.com/WonderfulClaire/kimi-k3-deep-dive/stargazers)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
 **中文** ｜ 信息核对至 2026-07-25（晚间），一手来源见每篇文末（官方博客 / HF / Artificial Analysis / Vals）
 
@@ -94,10 +97,15 @@ This is a **Chinese-language deep dive** into Kimi K3 — the 2.8T-parameter MoE
 
 - 权重放出后的**实测数据**（吞吐、显存、量化效果）最缺，欢迎 PR
 - 发现事实错误直接开 Issue，注明来源链接即可
+- 内容规范与流程见 [CONTRIBUTING.md](CONTRIBUTING.md)
 - 转载/引用请注明本仓库
 
 ## ⚖️ 声明
 
-本仓库为社区解读，与月之暗面（Moonshot AI）无官方关联。所有数据标注来源与核对日期；模型能力数据随官方与第三方更新可能变动，以一手来源为准。
+本仓库为社区解读，与月之暗面（Moonshot AI）无官方关联。所有数据标注来源与核对日期；模型能力数据随官方与第三方更新可能变动，以一手来源为准。文字内容以 [MIT License](LICENSE) 发布。
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=WonderfulClaire/kimi-k3-deep-dive&type=Date)](https://star-history.com/#WonderfulClaire/kimi-k3-deep-dive&Date)
 
 **如果这份解读帮你省了时间，点个 ⭐ Star 支持追更！**

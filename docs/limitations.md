@@ -1,6 +1,6 @@
 # 五、已知局限与踩坑：官方自曝 + 使用注意
 
-> 官方在发布博客里罕见地列了三条局限，每一条都直接影响生产使用。这里逐条展开，顺带说怎么避。核对至 2026-07-25。
+> 官方在发布博客里罕见地列了三条局限，每一条都直接影响生产使用。这里逐条展开，顺带说怎么避。核对至 2026-07-28。
 
 ## 局限 1：思维链历史敏感（最容易踩的坑）
 
@@ -26,7 +26,7 @@
 
 这几条不是官方列的局限，但上手前最好心里有数：
 
-- “开源”目前的准确状态是“官宣 7/27 当天发布权重”（截至 07-25）。权重、License 条款细节、训练代码/数据的开放范围都以实际发布为准；open weights 不等于 open source，商用前必读 License；
+- 权重已于 7/27 正式发布，License 是**修改版 MIT**——注意“修改版”三个字，open weights 不等于完全自由，商用前把附加条款逐字读一遍原文；训练数据未开放，训练基础设施开了三件（MoonEP/FlashKDA/AgentEnv）；
 - Arena WebDev 第 1 是仅 1757 票的初步结果；所有榜单排名随新模型发布会变，引用时带上日期；
 - 64+ 卡的门槛意味着“能私有化”和“值得私有化”是两回事，算过 TCO 再动手。
 
@@ -36,6 +36,6 @@ K3 的局限画像其实非常一致：它是为长时程自主干活极端优�
 
 ---
 
-**来源**：[Kimi K3 官方博客](https://www.kimi.com/blog/kimi-k3)（Limitations 章节）、[Artificial Analysis](https://artificialanalysis.ai/) 输出 token 统计。
+**来源**：[Kimi K3 官方博客](https://www.kimi.com/blog/kimi-k3)（Limitations 章节）、[Artificial Analysis](https://artificialanalysis.ai/) 输出 token 统计、[moonshotai/Kimi-K3 @ HF](https://huggingface.co/moonshotai/Kimi-K3)（License）。
 
 ⬅️ 上一篇：[自部署跟踪](self-hosting.md) ｜ [返回目录](../README.md)

@@ -2,9 +2,9 @@
 
 > **2.8 万亿参数、100 万 token 上下文、全球首个开源 3T 级模型** —— 月之暗面 Kimi K3 完全解读。
 >
-> 📅 **权重开源倒计时：官方已官宣 2026-07-27 当天正式发布完整权重**（HF 仓库页已挂倒计时），本仓库持续追更（权重、License、技术报告、vLLM 支持、社区量化），Watch 本仓库第一时间获取更新。
+> ✅ **权重已于 2026-07-27 深夜正式开源**（修改版 MIT，30 分钟 4000 赞登顶 HF Trending），同步发布技术报告与训练基础设施。本仓库已据技术报告全面回填更新，后续持续追社区实测与量化动态，Watch 本仓库第一时间获取更新。
 
-[![Weights](https://img.shields.io/badge/%E6%9D%83%E9%87%8D-7%2F27%20%E5%AE%98%E5%AE%A3%E5%8F%91%E5%B8%83-orange)](https://huggingface.co/moonshotai/Kimi-K3)
+[![Weights](https://img.shields.io/badge/%E6%9D%83%E9%87%8D-%E5%B7%B2%E5%BC%80%E6%BA%90%20(7%2F27)-brightgreen)](https://huggingface.co/moonshotai/Kimi-K3)
 [![Context](https://img.shields.io/badge/%E4%B8%8A%E4%B8%8B%E6%96%87-1M%20tokens-blue)](#三分钟看懂-kimi-k3)
 [![Params](https://img.shields.io/badge/%E5%8F%82%E6%95%B0-2.8T%20(MoE%2016%2F896)-purple)](docs/architecture.md)
 [![Release](https://img.shields.io/github/v/release/WonderfulClaire/kimi-k3-deep-dive?label=release)](https://github.com/WonderfulClaire/kimi-k3-deep-dive/releases)
@@ -12,7 +12,7 @@
 [![Stars](https://img.shields.io/github/stars/WonderfulClaire/kimi-k3-deep-dive?style=social)](https://github.com/WonderfulClaire/kimi-k3-deep-dive/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
-**中文** ｜ 信息核对至 2026-07-25（晚间），一手来源见每篇文末（官方博客 / HF / Artificial Analysis / Vals）
+**中文** ｜ 信息核对至 2026-07-28，一手来源见每篇文末（官方博客 / 技术报告 / HF / Artificial Analysis / Vals）
 
 ---
 
@@ -20,9 +20,9 @@
 
 | 维度 | Kimi K3 | 一句话点评 |
 | --- | --- | --- |
-| 发布时间 | 2026-07-16（WAIC 前夕） | 权重**官宣 7/27 当天**全量开源 |
+| 发布时间 | 2026-07-16（WAIC 前夕） | 权重**已于 7/27 开源**（修改版 MIT） |
 | 总参数 | **2.8T**（全球最大开源模型） | 比 DeepSeek V4 Pro 大约 75% |
-| 激活方式 | MoE 稀疏激活：**896 选 16** 专家 | 每 token 不用全部参数，算力可控 |
+| 激活方式 | MoE 稀疏激活：**896 选 16** + 2 共享专家 | 每 token 激活 **104.2B**，约 K2 的 3 倍 |
 | 上下文 | **1M tokens**（1,048,576） | 约 K2.6（256K）的 4 倍 |
 | 架构核心 | **KDA**（Kimi Delta Attention）+ **AttnRes**（Attention Residuals） | 官方称综合 scaling 效率较 K2 提升约 **2.5×** |
 | 多模态 | 原生视觉（图像确认可用，产品内演示视频理解） | 不是外挂 encoder，是同一个模型 |
@@ -47,12 +47,12 @@
 | [一、架构拆解](docs/architecture.md) | KDA / AttnRes / Stable LatentMoE / Quantile Balancing / Per-Head Muon / SiTU / Gated MLA / MXFP4，逐个讲人话 | 想搞懂"为什么能到 2.8T"的人 |
 | [二、跑分导读](docs/benchmarks.md) | 官方跑分怎么读（harness 差异陷阱）+ 第三方独立评测汇总 + K3 vs K2.6 vs 闭源旗舰 | 想知道"到底强不强"的人 |
 | [三、API 上手](docs/getting-started.md) | 5 分钟跑通 kimi-k3 API：OpenAI 兼容接口、思维链保留的坑、成本估算表 | 想马上用起来的开发者 |
-| [四、自部署跟踪](docs/self-hosting.md) | 权重/License/vLLM(KDA) 状态追踪、硬件需求测算、社区量化动态 —— **7/27 后重点更新** | 想私有化部署的团队 |
+| [四、自部署跟踪](docs/self-hosting.md) | 权重已落地：修改版 MIT、vLLM/SGLang 首日支持、国产卡 Day 0 适配、硬件需求测算 | 想私有化部署的团队 |
 | [五、已知局限与踩坑](docs/limitations.md) | 官方自曝的 3 大局限 + 思维链历史丢失导致输出不稳的实际影响 | 所有准备上生产的人 |
 
 ---
 
-## ⚡ 30 秒跑通 API（先于权重开源就能玩）
+## ⚡ 30 秒跑通 API（不想自部署也能玩）
 
 ```python
 # pip install --upgrade openai
@@ -82,16 +82,18 @@ print(resp.choices[0].message.content)
 | --- | --- | --- |
 | 模型发布（API 可用） | ✅ 2026-07-16 | 07-16 |
 | HF 仓库页 + LICENSE 上线 | ✅ [moonshotai/Kimi-K3](https://huggingface.co/moonshotai/Kimi-K3) | 07-25 核对 |
-| 完整权重放出 | ⏳ **官宣 07-27 当天发布**，HF 页已挂倒计时 | 07-25 更新 |
-| 技术报告 | ⏳ 官方确认将发布（架构设计、训练细节、评估结果） | 07-25 更新 |
-| vLLM KDA（含 prefill cache）合入 | ⏳ 随权重发布 | 追更中 |
-| 社区量化 / 本地推理探索 | ⏳ 等权重 | 追更中 |
+| 完整权重放出 | ✅ **07-27 深夜上线**，修改版 MIT | 07-28 更新 |
+| 技术报告 | ✅ 随权重发布，本仓库已据此回填 | 07-28 更新 |
+| 推理框架支持 | ✅ vLLM / SGLang 首日支持，FlashKDA 开源 | 07-28 更新 |
+| 国产算力适配 | ✅ 华为昇腾 0day、阿里云真武 M890 Day 0 | 07-28 更新 |
+| 社区量化 / 本地推理探索 | ⏳ 权重刚落地，追更中 | 追更中 |
+| License 逐条解读 + 首批社区实测 | ⏳ 整理中 | 追更中 |
 
 ---
 
 ## 🌍 English TL;DR
 
-This is a **Chinese-language deep dive** into Kimi K3 — the 2.8T-parameter MoE model (16-of-896 experts, 1M context) that Moonshot AI has **confirmed will be open-weighted on July 27, 2026** (countdown live on [HF](https://huggingface.co/moonshotai/Kimi-K3)). Covers architecture (KDA / AttnRes / Stable LatentMoE / MXFP4), benchmark caveats, API quickstart (incl. the `reasoning_content` round-trip pitfall), self-hosting hardware math (~1.4 TB raw weights, 64+ accelerators), and official limitations. All facts dated and sourced. Star ⭐ to follow the weights-release tracking.
+This is a **Chinese-language deep dive** into Kimi K3 — the 2.8T-parameter MoE model (16-of-896 experts + 2 shared, 104.2B activated, 1M context) whose weights **went live on Hugging Face on July 27, 2026** under a modified MIT license, together with the technical report ([HF](https://huggingface.co/moonshotai/Kimi-K3)). Covers architecture (KDA / AttnRes / Stable LatentMoE / MXFP4, now updated with tech-report numbers), benchmark caveats, API quickstart (incl. the `reasoning_content` round-trip pitfall), self-hosting reality check (~1.4 TB raw weights, 64+ accelerators, day-0 vLLM/SGLang support), and official limitations. All facts dated and sourced. Star ⭐ to follow community benchmarks and quantization tracking.
 
 ## 🤝 参与贡献
 

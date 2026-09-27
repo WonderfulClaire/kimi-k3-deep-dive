@@ -1,0 +1,3 @@
+{"id":"arith-001","prompt":"Use the calculator tool and return only the final number: (23 * 17) + 9","expected":"400"}
+{"id":"arith-002","prompt":"Use the calculator tool and return only the final number: 144 / 12 + 7","expected":"19"}
+{"id":"arith-003","prompt":"Use the calculator tool and return only the final number: (8 ** 3) - 12","expected":"500"}

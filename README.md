@@ -1,6 +1,6 @@
 # Kimi K3 深度解读 + Agentic Post-Training Lab 🚀
 
-> **2.8 万亿参数、100 万 token 上下文、全球首个开源 3T 级模型** —— 月之暗面 Kimi K3 完全解读。
+> **从 K3 架构与技术报告，到 Harness / Trajectory / Verifier / Reward / Replay 的可运行实验。** 既讲清楚 Kimi K3，也把 Agentic Post-Training 做成可以继续迭代的研究代码。
 >
 > ✅ **权重已于 2026-07-27 深夜正式开源**（修改版 MIT，30 分钟 4000 赞登顶 HF Trending），同步发布技术报告与训练基础设施。本仓库已据技术报告全面回填更新，后续持续追社区实测与量化动态，Watch 本仓库第一时间获取更新。
 
@@ -49,6 +49,8 @@
 | [三、API 上手](docs/getting-started.md) | 5 分钟跑通 kimi-k3 API：OpenAI 兼容接口、思维链保留的坑、成本估算表 | 想马上用起来的开发者 |
 | [四、自部署跟踪](docs/self-hosting.md) | 权重已落地：修改版 MIT、vLLM/SGLang 首日支持、国产卡 Day 0 适配、硬件需求测算 | 想私有化部署的团队 |
 | [五、已知局限与踩坑](docs/limitations.md) | 官方自曝的 3 大局限 + 思维链历史丢失导致输出不稳的实际影响 | 所有准备上生产的人 |
+| [六、后训练拆解](docs/post-training.md) | SFT / Agentic RL / Harness diversification / Reward / MOPD | 想研究后训练和 Agent RL 的人 |
+| [七、Agentic Post-Training Lab](docs/experiments.md) | same-harness evaluation、trajectory replay、reward ablation、SFT→RL、AutoResearch 路线 | 想真正跑实验的人 |
 | [六、K3 后训练](docs/post-training.md) | SFT / Agentic RL / Harness diversification / GRM / MOPD | 想做后训练与 Agent RL 的人 |
 | [七、Agentic Post-Training Lab](docs/experiments.md) | 统一 harness、trajectory、replay、verifiable reward、SFT→RL 实验协议 | 想真正跑实验的人 |
 
@@ -94,6 +96,56 @@ k3lab-eval \
 - fixed vs randomized harness generalization；
 - 小模型 SFT → RL；
 - AutoResearch 自动提出配置、运行实验、分析失败并生成下一轮假设。
+
+详见 [K3 后训练](docs/post-training.md) 和 [实验设计](docs/experiments.md)。
+
+---
+
+## 🧪 Agentic Post-Training Lab
+
+仓库现在不只做技术解读，还加入了一个最小可运行的实验骨架：
+
+```text
+Model Provider
+      ↓
+Agent Harness
+      ↓
+Tool / Environment
+      ↓
+Trajectory
+      ↓
+Verifier
+      ↓
+Composite Reward
+      ↓
+Replay / Evaluation
+```
+
+当前代码支持：
+
+- **OpenAI-compatible provider**：同一套 harness 可切换不同模型 endpoint；
+- **完整 assistant message round-trip**：方便做 reasoning/history preservation ablation；
+- **trajectory logging**：记录工具调用、参数、observation、最终答案和 reward；
+- **deterministic replay**：重新执行可确定复现的工具调用；
+- **verifiable/composite reward**：先从透明规则奖励开始，再扩展到 judge / GRM；
+- **same-harness evaluation**：避免把 harness 差异误当成模型差异。
+
+快速跑 smoke test：
+
+```bash
+pip install -e ".[dev]"
+pytest -q
+
+export K3LAB_API_KEY="..."
+export K3LAB_BASE_URL="https://your-openai-compatible-endpoint/v1"
+export K3LAB_MODEL="your-model"
+
+k3lab-eval \
+  --tasks experiments/tasks/math_smoke.jsonl \
+  --out runs/your-model.jsonl
+```
+
+> 现在的 math task 只是验证整条 pipeline 能跑通，不作为模型能力结论。真正的研究实验会继续补 coding/tool-use/multi-turn task、reward hacking case study、SFT→RL 和 harness generalization。
 
 详见 [K3 后训练](docs/post-training.md) 和 [实验设计](docs/experiments.md)。
 

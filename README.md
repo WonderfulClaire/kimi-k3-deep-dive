@@ -1,4 +1,4 @@
-# Kimi K3 深度解读 · Deep Dive 🚀
+# Kimi K3 深度解读 + Agentic Post-Training Lab 🚀
 
 > **2.8 万亿参数、100 万 token 上下文、全球首个开源 3T 级模型** —— 月之暗面 Kimi K3 完全解读。
 >
@@ -12,7 +12,7 @@
 [![Stars](https://img.shields.io/github/stars/WonderfulClaire/kimi-k3-deep-dive?style=social)](https://github.com/WonderfulClaire/kimi-k3-deep-dive/stargazers)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
 
-**中文** ｜ 信息核对至 2026-07-28，一手来源见每篇文末（官方博客 / 技术报告 / HF / Artificial Analysis / Vals）
+**中文** ｜ K3 资料解读 + 可运行的 Agentic Post-Training 实验骨架。资料事实见每篇文末；实验结果只在真实跑出后回填。
 
 ---
 
@@ -49,6 +49,53 @@
 | [三、API 上手](docs/getting-started.md) | 5 分钟跑通 kimi-k3 API：OpenAI 兼容接口、思维链保留的坑、成本估算表 | 想马上用起来的开发者 |
 | [四、自部署跟踪](docs/self-hosting.md) | 权重已落地：修改版 MIT、vLLM/SGLang 首日支持、国产卡 Day 0 适配、硬件需求测算 | 想私有化部署的团队 |
 | [五、已知局限与踩坑](docs/limitations.md) | 官方自曝的 3 大局限 + 思维链历史丢失导致输出不稳的实际影响 | 所有准备上生产的人 |
+| [六、K3 后训练](docs/post-training.md) | SFT / Agentic RL / Harness diversification / GRM / MOPD | 想做后训练与 Agent RL 的人 |
+| [七、Agentic Post-Training Lab](docs/experiments.md) | 统一 harness、trajectory、replay、verifiable reward、SFT→RL 实验协议 | 想真正跑实验的人 |
+
+---
+
+## 🧪 Agentic Post-Training Lab（新增）
+
+这个仓库不再只做技术解读。现在加入了一个最小、可运行的实验骨架，用来把 **Agent Harness → Trajectory → Verifier → Reward → Replay** 这条链真正跑通。
+
+```text
+src/k3lab/
+├── providers/      # OpenAI-compatible endpoint
+├── harness/        # agent loop / tools / trajectory logging
+├── rewards/        # deterministic verifier + composite reward
+├── eval.py         # same-harness evaluation
+└── replay.py       # deterministic trajectory replay
+```
+
+本地安装与 smoke test：
+
+```bash
+pip install -e ".[dev]"
+pytest -q
+```
+
+接任意 OpenAI-compatible endpoint：
+
+```bash
+export K3LAB_API_KEY="..."
+export K3LAB_BASE_URL="https://your-endpoint/v1"
+export K3LAB_MODEL="your-model"
+
+k3lab-eval \
+  --tasks experiments/tasks/math_smoke.jsonl \
+  --out runs/your-model.jsonl
+```
+
+当前 v0.1 先解决基础设施问题，不提前伪造 benchmark 数字。后续会逐步加入：
+
+- same-harness Kimi / DeepSeek / Qwen 对照；
+- reasoning history preservation ablation；
+- reward ablation 与 reward hacking case study；
+- fixed vs randomized harness generalization；
+- 小模型 SFT → RL；
+- AutoResearch 自动提出配置、运行实验、分析失败并生成下一轮假设。
+
+详见 [K3 后训练](docs/post-training.md) 和 [实验设计](docs/experiments.md)。
 
 ---
 
@@ -93,7 +140,7 @@ print(resp.choices[0].message.content)
 
 ## 🌍 English TL;DR
 
-This is a **Chinese-language deep dive** into Kimi K3 — the 2.8T-parameter MoE model (16-of-896 experts + 2 shared, 104.2B activated, 1M context) whose weights **went live on Hugging Face on July 27, 2026** under a modified MIT license, together with the technical report ([HF](https://huggingface.co/moonshotai/Kimi-K3)). Covers architecture (KDA / AttnRes / Stable LatentMoE / MXFP4, now updated with tech-report numbers), benchmark caveats, API quickstart (incl. the `reasoning_content` round-trip pitfall), self-hosting reality check (~1.4 TB raw weights, 64+ accelerators, day-0 vLLM/SGLang support), and official limitations. All facts dated and sourced. Star ⭐ to follow community benchmarks and quantization tracking.
+This is a **Chinese-language deep dive and reproducible agentic post-training lab** for Kimi K3 — the 2.8T-parameter MoE model (16-of-896 experts + 2 shared, 104.2B activated, 1M context) whose weights **went live on Hugging Face on July 27, 2026** under a modified MIT license, together with the technical report ([HF](https://huggingface.co/moonshotai/Kimi-K3)). Covers architecture (KDA / AttnRes / Stable LatentMoE / MXFP4, now updated with tech-report numbers), benchmark caveats, API quickstart (incl. the `reasoning_content` round-trip pitfall), self-hosting reality check (~1.4 TB raw weights, 64+ accelerators, day-0 vLLM/SGLang support), and official limitations. All facts dated and sourced. Star ⭐ to follow community benchmarks and quantization tracking.
 
 ## 🤝 参与贡献
 

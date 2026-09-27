@@ -2,19 +2,21 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
-from k3lab.schema import ToolEvent, Trajectory
+from k3lab.schema import ToolEvent, Trajectory, redact_reasoning_fields
 
 from .tools import ToolRegistry
+
+HistoryMode = Literal["full", "no_reasoning"]
 
 
 class AgentHarness:
     """Minimal agent loop with explicit trajectory capture.
 
-    Important for Kimi-style multi-turn reasoning APIs: the full assistant
-    message returned by the provider is round-tripped in memory rather than
-    rebuilding only {"role": "assistant", "content": "..."}.
+    `full` history round-trips the provider's complete assistant message.
+    `no_reasoning` removes reasoning-like fields but preserves content and
+    tool-call protocol fields, enabling a controlled history ablation.
     """
 
     def __init__(
@@ -27,11 +29,15 @@ class AgentHarness:
             "You are an agent. Use tools when useful. "
             "Return a concise final answer when the task is complete."
         ),
+        history_mode: HistoryMode = "full",
     ) -> None:
+        if history_mode not in {"full", "no_reasoning"}:
+            raise ValueError(f"unsupported history_mode: {history_mode}")
         self.provider = provider
         self.tools = tools
         self.max_steps = max_steps
         self.system_prompt = system_prompt
+        self.history_mode = history_mode
 
     def run(
         self,
@@ -46,6 +52,8 @@ class AgentHarness:
             {"role": "user", "content": prompt},
         ]
         trajectory = Trajectory(task_id=task_id, model=model_name, prompt=prompt)
+        trajectory.metadata["system_prompt"] = self.system_prompt
+        trajectory.metadata["history_mode"] = self.history_mode
         generation_kwargs = generation_kwargs or {}
         usage_records: list[dict[str, Any]] = []
 
@@ -60,7 +68,7 @@ class AgentHarness:
             trajectory.assistant_messages.append(assistant)
             usage_records.append(response.usage)
 
-            messages.append(assistant)
+            messages.append(self._history_message(assistant))
 
             tool_calls = assistant.get("tool_calls") or []
             if not tool_calls:
@@ -106,6 +114,11 @@ class AgentHarness:
         trajectory.metadata["usage"] = usage_records
         trajectory.metadata["stop_reason"] = "max_steps"
         return trajectory
+
+    def _history_message(self, assistant: dict[str, Any]) -> dict[str, Any]:
+        if self.history_mode == "full":
+            return dict(assistant)
+        return redact_reasoning_fields(assistant)
 
 
 def append_jsonl(

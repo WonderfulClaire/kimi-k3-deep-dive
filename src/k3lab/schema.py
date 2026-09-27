@@ -40,21 +40,25 @@ class Trajectory:
         payload = asdict(self)
         if not include_reasoning:
             payload["assistant_messages"] = [
-                _redact_reasoning(message) for message in self.assistant_messages
+                redact_reasoning_fields(message) for message in self.assistant_messages
             ]
         return payload
 
 
-def _redact_reasoning(value: Any) -> Any:
-    """Remove reasoning-like fields from persisted traces by default."""
+def redact_reasoning_fields(value: Any) -> Any:
+    """Remove reasoning-like fields recursively.
+
+    Persisted traces are redacted by default. This same helper is also used for
+    the no-reasoning history ablation while retaining tool-call protocol fields.
+    """
     if isinstance(value, dict):
         out: dict[str, Any] = {}
         for key, item in value.items():
             lowered = key.lower()
             if "reasoning" in lowered or lowered in {"thought", "thinking"}:
                 continue
-            out[key] = _redact_reasoning(item)
+            out[key] = redact_reasoning_fields(item)
         return out
     if isinstance(value, list):
-        return [_redact_reasoning(item) for item in value]
+        return [redact_reasoning_fields(item) for item in value]
     return value

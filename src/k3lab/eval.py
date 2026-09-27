@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from k3lab.envs import MiniRepoEnv
-from k3lab.harness.agent import AgentHarness, append_jsonl
+from k3lab.harness.agent import AgentHarness
+from k3lab.harness.agent import append_jsonl
 from k3lab.harness.tools import default_registry
 from k3lab.providers import OpenAICompatibleProvider
 from k3lab.rewards import CompositeReward, ExactAnswerVerifier
@@ -19,6 +20,8 @@ def _score_task(
     provider: OpenAICompatibleProvider,
     model: str,
     max_steps: int,
+    history_mode: str,
+    harness_variant: str,
 ) -> tuple[Any, float]:
     task_type = task.get("type", "exact_answer")
     rewarder = CompositeReward()
@@ -27,8 +30,9 @@ def _score_task(
         env = MiniRepoEnv.from_task(task)
         harness = AgentHarness(
             provider=provider,
-            tools=env.registry(),
+            tools=env.registry(variant=harness_variant),
             max_steps=max_steps,
+            history_mode=history_mode,
             system_prompt=(
                 "You are a coding agent in a small synthetic repository. "
                 "Inspect files, edit the implementation, and run public tests. "
@@ -43,6 +47,7 @@ def _score_task(
         verifier = env.verify()
         success = float(verifier.success)
         trajectory.metadata["task_type"] = task_type
+        trajectory.metadata["harness_variant"] = harness_variant
         trajectory.metadata["verifier"] = verifier.to_dict()
         trajectory.metadata["environment"] = env.snapshot()
     elif task_type == "exact_answer":
@@ -50,6 +55,7 @@ def _score_task(
             provider=provider,
             tools=default_registry(),
             max_steps=max_steps,
+            history_mode=history_mode,
         )
         trajectory = harness.run(
             task_id=task["id"],
@@ -60,6 +66,7 @@ def _score_task(
             trajectory.final_answer
         )
         trajectory.metadata["task_type"] = task_type
+        trajectory.metadata["harness_variant"] = "canonical"
         trajectory.metadata["verifier"] = {"success": bool(success)}
     else:
         raise ValueError(f"unknown task type: {task_type}")
@@ -80,6 +87,16 @@ def main() -> None:
     parser.add_argument("--base-url", default=os.getenv("K3LAB_BASE_URL"))
     parser.add_argument("--api-key", default=os.getenv("K3LAB_API_KEY"))
     parser.add_argument("--max-steps", type=int, default=12)
+    parser.add_argument(
+        "--history-mode",
+        choices=["full", "no_reasoning"],
+        default="full",
+    )
+    parser.add_argument(
+        "--harness-variant",
+        choices=["canonical", "compact", "alternate"],
+        default="canonical",
+    )
     args = parser.parse_args()
 
     if not args.model or not args.api_key:
@@ -101,6 +118,8 @@ def main() -> None:
                 provider=provider,
                 model=args.model,
                 max_steps=args.max_steps,
+                history_mode=args.history_mode,
+                harness_variant=args.harness_variant,
             )
             append_jsonl(args.out, trajectory)
             print(
@@ -108,6 +127,8 @@ def main() -> None:
                     {
                         "task_id": task["id"],
                         "task_type": trajectory.metadata["task_type"],
+                        "history_mode": trajectory.metadata["history_mode"],
+                        "harness_variant": trajectory.metadata["harness_variant"],
                         "success": success,
                         "reward": trajectory.metadata["reward"]["total"],
                         "tool_calls": trajectory.num_tool_calls,

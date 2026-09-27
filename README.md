@@ -43,7 +43,7 @@
 
 ---
 
-## 🧪 Agentic Post-Training Lab v0.2
+## 🧪 Agentic Post-Training Lab v0.3
 
 当前仓库已经有一条能跑通的研究链：
 
@@ -75,7 +75,8 @@ src/k3lab/
 ├── rewards/        # verifier-compatible composite reward
 ├── eval.py         # same-harness evaluation
 ├── replay.py       # deterministic trajectory replay
-└── summary.py      # aggregate multiple model runs
+├── summary.py      # aggregate multiple model runs
+└── export_sft.py   # verified trajectories → SFT JSONL
 ```
 
 ### 本地验证
@@ -122,7 +123,26 @@ naive reward PASS  ≠  actual task success
 
 这比只写一句「要防 reward hacking」更有实验价值。
 
-当前 v0.2 已完成基础设施；下一阶段继续做 **history ablation → harness randomization → successful trajectory collection → 小模型 SFT / RL**。真实 Kimi / DeepSeek / Qwen 对照结果不提前编造。
+v0.3 已把两类 ablation 直接做成可运行参数：
+
+```bash
+# reasoning/history ablation
+k3lab-eval --history-mode full ...
+k3lab-eval --history-mode no_reasoning ...
+
+# harness generalization
+k3lab-eval --harness-variant canonical ...
+k3lab-eval --harness-variant compact ...
+k3lab-eval --harness-variant alternate ...
+```
+
+secure verifier 通过的 rollout 还能直接导出为 SFT 数据：
+
+```bash
+k3lab-export-sft runs/*.jsonl --out data/verified_sft.jsonl
+```
+
+因此现在已经连上 **rollout → verifier → successful trajectory → SFT dataset**。下一阶段继续补真正的小模型 SFT / RL 训练和 held-out harness 结果。真实 Kimi / DeepSeek / Qwen 对照结果不提前编造。
 
 ---
 
@@ -157,7 +177,7 @@ print(resp.choices[0].message.content)
 | 完整权重 | ✅ |
 | 技术报告 | ✅ |
 | vLLM / SGLang 等推理支持 | ✅ |
-| 本仓库 Agentic Post-Training Lab v0.2 | ✅ |
+| 本仓库 Agentic Post-Training Lab v0.3 | ✅ |
 | Same-harness 多模型真实结果 | ⏳ 待实测 |
 | 小模型 SFT → RL | ⏳ |
 | AutoResearch loop | ⏳ |
@@ -166,7 +186,7 @@ print(resp.choices[0].message.content)
 
 ## 🌍 English TL;DR
 
-This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, compositional rewards, and cross-model run summaries. No model benchmark numbers are reported until they are actually run.
+This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, history/harness ablations, compositional rewards, cross-model run summaries, and verified-trajectory export for SFT. No model benchmark numbers are reported until they are actually run.
 
 ## 🤝 参与贡献
 

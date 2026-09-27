@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k3lab"
-version = "0.2.0"
-description = "A reproducible lab for agent harness, trajectory replay, verifiable rewards, reward hacking, and post-training experiments."
+version = "0.3.0"
+description = "A reproducible lab for agent harness, trajectory replay, verifiable rewards, harness ablations, and post-training data."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -21,6 +21,7 @@ dev = [
 k3lab-eval = "k3lab.eval:main"
 k3lab-replay = "k3lab.replay:main"
 k3lab-summarize = "k3lab.summary:main"
+k3lab-export-sft = "k3lab.export_sft:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

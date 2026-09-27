@@ -41,7 +41,7 @@ k3lab-summarize runs/kimi.jsonl runs/deepseek.jsonl runs/qwen.jsonl
 
 ## 3. MiniRepo Coding Environment
 
-`repo_patch.jsonl` 已经是多步 tool-use：
+`repo_patch.jsonl` 是多步 tool-use：
 
 ```text
 read SPEC.md
@@ -57,13 +57,7 @@ final repository state
 secure verifier
 ```
 
-环境不执行模型生成的任意 shell/Python，而是让 agent 修改一个安全表达式 DSL。这样可以研究 agent 行为、reward 和 generalization，同时避免把 benchmark 本身变成任意代码执行器。
-
-secure verifier 同时检查：
-
-1. 原始 public tests；
-2. held-out tests；
-3. protected test files 是否被篡改。
+环境不执行模型生成的任意 shell/Python，而是让 agent 修改一个安全表达式 DSL。secure verifier 同时检查原始 public tests、held-out tests 和 protected-file integrity。
 
 最终 reward 来自**最终环境状态**，不是 agent 自己声称「修好了」。
 
@@ -81,7 +75,7 @@ tests become empty
 0 / 0 => naive PASS
 ```
 
-但 secure verifier 不信这个 mutable signal，而是重新检查原始 public tests、held-out tests 和 test-file integrity。
+但 secure verifier 不信这个 mutable signal。
 
 单元测试覆盖两类典型 failure：
 
@@ -96,11 +90,9 @@ reward observable to policy  !=  actual task success
 
 ## 5. History Preservation Ablation
 
-v0.3 已经把这个实验做成 CLI 参数。
+v0.4 已经把 history ablation 做成 CLI 参数。
 
-### Full history
-
-完整 round-trip provider 返回的 assistant message：
+完整 round-trip：
 
 ```bash
 k3lab-eval \
@@ -109,9 +101,7 @@ k3lab-eval \
   --out runs/model-full.jsonl
 ```
 
-### No reasoning
-
-只移除 reasoning-like 字段，但保留 `tool_calls` 等协议字段：
+移除 reasoning-like history，但保留 tool-call protocol：
 
 ```bash
 k3lab-eval \
@@ -120,13 +110,11 @@ k3lab-eval \
   --out runs/model-no-reasoning.jsonl
 ```
 
-这样比较的是 history 中 reasoning state 的作用，而不是因为破坏 tool protocol 导致 API 直接报错。
-
-比较 success、invalid calls、steps、tokens。结果只对具体模型/API 版本成立。
+这样比较的是 reasoning/history state 的作用，而不是把工具协议破坏后再比较。
 
 ## 6. Harness Generalization
 
-v0.3 提供三套**语义等价、schema 不同**的工具接口：
+提供三套**语义等价、schema 不同**的工具接口：
 
 | Variant | 例子 |
 | --- | --- |
@@ -145,14 +133,7 @@ for variant in canonical compact alternate; do
 done
 ```
 
-如果模型只在 canonical 上稳定，换等价 schema 就明显掉，说明它依赖 harness-specific pattern。
-
-后面做训练时可以：
-
-- train: canonical + compact；
-- held-out test: alternate。
-
-这样就有真正的 harness generalization 指标。
+训练时可以只见 canonical + compact，把 alternate 留作 held-out harness。
 
 ## 7. Reward Ablation
 
@@ -164,11 +145,11 @@ R2 = task_success - lambda_invalid * invalid_calls
 R3 = task_success - lambda_invalid * invalid_calls - lambda_step * tool_steps
 ```
 
-如果后面做 RL，还要同时报告 held-out success 和 hacking rate，不能只报告训练 reward。
+后面做 RL 时同时报告 held-out success 和 hacking rate，不能只报告训练 reward。
 
 ## 8. Verified Trajectory → SFT Data
 
-v0.3 可以直接把 secure verifier 通过的 rollout 导出成 SFT JSONL：
+secure verifier 通过的 rollout 可以直接导出：
 
 ```bash
 k3lab-export-sft \
@@ -176,53 +157,63 @@ k3lab-export-sft \
   --out data/verified_sft.jsonl
 ```
 
-只导出 `metadata.verifier.success == true` 的轨迹。导出内容包括：
+只导出 `metadata.verifier.success == true` 的轨迹，保留 system / user / assistant tool call / tool observation / final answer；持久化轨迹默认不保存 reasoning-like 字段。
 
-```text
-system
-user
-assistant(tool call)
-tool(observation)
-...
-assistant(final)
+## 9. LoRA SFT
+
+```bash
+pip install -e ".[train]"
+
+k3lab-train-sft \
+  --model Qwen/Qwen3-0.6B \
+  --data data/verified_sft.jsonl \
+  --output-dir outputs/qwen3-sft \
+  --epochs 1 \
+  --bf16
 ```
 
-持久化轨迹默认移除 reasoning-like 字段，所以这里得到的是可见交互轨迹，不把私有 reasoning trace 当训练数据。
+训练脚本使用 TRL SFTTrainer + PEFT LoRA。
 
-这一步把项目从「评测框架」接到了真正的 post-training pipeline：
+## 10. Agentic GRPO
 
-```text
-rollout
-  ↓
-secure verifier
-  ↓
-successful trajectories
-  ↓
-SFT dataset
-  ↓
-SFT
-  ↓
-RL
+```bash
+k3lab-train-grpo \
+  --model Qwen/Qwen3-0.6B \
+  --tasks experiments/tasks/repo_patch.jsonl \
+  --output-dir outputs/qwen3-grpo \
+  --steps 100 \
+  --num-generations 4 \
+  --max-tool-iterations 8 \
+  --bf16
 ```
 
-## 9. 下一步：SFT → RL
+这里不是用最终文本 judge，而是用 stateful environment 的 `get_reward()`：
 
-不训练 2.8T K3，而选成本可控的小型开源模型：
+```text
+policy
+  ↓
+tool calls
+  ↓
+environment state
+  ↓
+original public + held-out + integrity
+  ↓
+secure reward
+```
 
-| Model | In-harness success | Held-out harness | Hacking rate | Invalid calls | Avg steps |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Base | TBD | TBD | TBD | TBD | TBD |
-| SFT | TBD | TBD | TBD | TBD | TBD |
-| SFT + RL | TBD | TBD | TBD | TBD | TBD |
+因此 public-test signal 即使被 hack，训练 reward 仍然可以为 0。
 
-后续需要补：
+完整训练说明见 [SFT / GRPO Training](training.md)。
 
-- LoRA/QLoRA SFT recipe；
-- verifiable reward 接 GRPO；
-- held-out harness evaluation；
-- length / KL / reward hacking 监控。
+## 11. 最小实验矩阵
 
-## 10. AutoResearch
+| Model | Training | Canonical | Compact | Alternate held-out | Hacking rate |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Base | none | TBD | TBD | TBD | TBD |
+| Base + SFT | verified trajectories | TBD | TBD | TBD | TBD |
+| Base + SFT + GRPO | secure env reward | TBD | TBD | TBD | TBD |
+
+## 12. AutoResearch
 
 AutoResearch 放在训练闭环之后。第一版只允许修改 reward weights、prompt、context policy、tool descriptions、max steps，并自动运行评测和分析失败。
 
@@ -230,4 +221,4 @@ AutoResearch 放在训练闭环之后。第一版只允许修改 reward weights�
 
 ---
 
-当前状态：**v0.3 已包含 coding environment、secure verifier、reward-hacking case study、history ablation、harness variants、跨模型汇总以及 verified trajectory → SFT 数据导出。真实多模型结果和 SFT/RL 训练结果仍待实测。**
+当前状态：**v0.4 已包含 coding/tool-use environment、secure verifier、reward-hacking case study、history/harness ablation、verified trajectory export、LoRA SFT 与 agentic GRPO 训练入口。真实多模型结果和训练曲线仍待实际 GPU / endpoint 运行后回填。**

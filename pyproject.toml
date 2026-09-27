@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k3lab"
-version = "0.3.0"
-description = "A reproducible lab for agent harness, trajectory replay, verifiable rewards, harness ablations, and post-training data."
+version = "0.4.0"
+description = "A reproducible lab for agent harness, verifiable rewards, harness ablations, SFT, and agentic GRPO."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -16,12 +16,21 @@ dependencies = [
 dev = [
   "pytest>=8.0",
 ]
+train = [
+  "datasets>=4.0.0",
+  "transformers>=5.2.0",
+  "trl>=1.13.0",
+  "peft>=0.17.0",
+  "accelerate>=1.10.0",
+]
 
 [project.scripts]
 k3lab-eval = "k3lab.eval:main"
 k3lab-replay = "k3lab.replay:main"
 k3lab-summarize = "k3lab.summary:main"
 k3lab-export-sft = "k3lab.export_sft:main"
+k3lab-train-sft = "k3lab.train.sft:main"
+k3lab-train-grpo = "k3lab.train.grpo:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

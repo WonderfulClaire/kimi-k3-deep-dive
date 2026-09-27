@@ -142,3 +142,24 @@ Model
 - AgentENV: https://github.com/kvcache-ai/AgentENV
 
 ⬅️ 上一篇：[已知局限与踩坑](limitations.md) ｜ ➡️ 实验设计：[Agentic Post-Training Lab](experiments.md)
+
+
+## 7. 本仓库如何把后训练落到代码
+
+现在对应关系已经不是概念图：
+
+```text
+K3 paper concept            K3Lab implementation
+---------------------------------------------------------
+Agent harness            →  src/k3lab/harness/
+verifiable environment   →  src/k3lab/envs/
+trajectory / replay      →  schema.py + replay.py
+reward system            →  rewards/ + secure verifier
+harness diversification  →  canonical / compact / alternate
+history ablation         →  full / no_reasoning
+successful trajectories  →  export_sft.py
+SFT                      →  train/sft.py
+agentic RL               →  train/grpo.py + MiniRepoGRPOEnv
+```
+
+训练细节见 [SFT / GRPO Training](training.md)。

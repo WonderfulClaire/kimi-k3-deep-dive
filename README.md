@@ -39,7 +39,8 @@
 | [四、自部署跟踪](docs/self-hosting.md) | 权重、推理框架、硬件需求 |
 | [五、已知局限与踩坑](docs/limitations.md) | 长轨迹、history、agent 行为边界 |
 | [六、K3 后训练](docs/post-training.md) | SFT / Agentic RL / harness diversification / reward / MOPD |
-| [七、Agentic Post-Training Lab](docs/experiments.md) | same-harness eval / reward hacking / SFT→RL / AutoResearch |
+| [七、Agentic Post-Training Lab](docs/experiments.md) | same-harness eval / reward hacking / history & harness ablation |
+| [八、SFT / GRPO Training](docs/training.md) | verified trajectory → LoRA SFT → environment-owned reward GRPO |
 
 ---
 

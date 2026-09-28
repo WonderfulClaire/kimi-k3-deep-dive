@@ -76,7 +76,7 @@ src/k3lab/
 ├── rewards/        # verifier-compatible composite reward
 ├── eval.py         # same-harness evaluation
 ├── replay.py       # deterministic trajectory replay
-├── summary.py      # aggregate multiple model runs
+├── summary.py      # aggregate by model + history + harness setting
 ├── export_sft.py   # verified trajectories → SFT JSONL
 └── train/           # LoRA SFT + environment-owned GRPO
 ```
@@ -100,7 +100,7 @@ k3lab-eval \
   --out runs/your-model.jsonl
 ```
 
-然后把多个模型放到同一张表：
+每次评测会同时写出一个带 task SHA-256 和关键运行参数的 `*.manifest.json`。然后把多个模型或多个 harness/history 条件放到同一张表：
 
 ```bash
 k3lab-summarize \
@@ -207,7 +207,7 @@ print(resp.choices[0].message.content)
 
 ## 🌍 English TL;DR
 
-This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, history/harness ablations, verified-trajectory export for SFT, LoRA SFT, environment-owned agentic GRPO, compositional rewards, and cross-model run summaries. No model benchmark numbers are reported until they are actually run.
+This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. Evaluation runs now emit sidecar manifests with task hashes and ablation settings, and summaries keep model/history/harness conditions separate instead of silently pooling them. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, history/harness ablations, verified-trajectory export for SFT, LoRA SFT, environment-owned agentic GRPO, compositional rewards, and cross-model run summaries. No model benchmark numbers are reported until they are actually run.
 
 ## 🤝 参与贡献
 

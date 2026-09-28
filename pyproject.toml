@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k3lab"
-version = "0.4.0"
-description = "A reproducible lab for agent harness, verifiable rewards, harness ablations, SFT, and agentic GRPO."
+version = "0.5.0"
+description = "A reproducible lab for agent harness, verifiable rewards, bounded AutoResearch, SFT, and agentic GRPO."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -31,6 +31,7 @@ k3lab-summarize = "k3lab.summary:main"
 k3lab-export-sft = "k3lab.export_sft:main"
 k3lab-train-sft = "k3lab.train.sft:main"
 k3lab-train-grpo = "k3lab.train.grpo:main"
+k3lab-autoresearch = "k3lab.autoresearch:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

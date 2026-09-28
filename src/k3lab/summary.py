@@ -29,17 +29,34 @@ def _success(record: dict[str, Any]) -> float:
     return float(components.get("success", 0.0) > 0)
 
 
+def _setting(record: dict[str, Any]) -> tuple[str, str, str]:
+    metadata = record.get("metadata", {})
+    return (
+        str(record.get("model", "unknown")),
+        str(metadata.get("history_mode", "unknown")),
+        str(metadata.get("harness_variant", "unknown")),
+    )
+
+
 def summarize(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    """Aggregate runs without collapsing distinct harness/history settings.
+
+    A model can behave very differently under another history policy or tool
+    schema. Grouping by model alone silently mixes those experiments and can
+    hide harness sensitivity, so the setting is part of the aggregation key.
+    """
+    groups: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
     for record in records:
-        groups[str(record.get("model", "unknown"))].append(record)
+        groups[_setting(record)].append(record)
 
     rows: list[dict[str, Any]] = []
-    for model, items in sorted(groups.items()):
+    for (model, history_mode, harness_variant), items in sorted(groups.items()):
         inputs, outputs = zip(*[_usage_totals(item) for item in items])
         rows.append(
             {
                 "model": model,
+                "history_mode": history_mode,
+                "harness_variant": harness_variant,
                 "tasks": len(items),
                 "success_rate": mean(_success(item) for item in items),
                 "avg_reward": mean(
@@ -70,14 +87,14 @@ def _load(paths: list[Path]) -> list[dict[str, Any]]:
 
 def _markdown(rows: list[dict[str, Any]]) -> str:
     lines = [
-        "| Model | Tasks | Success | Avg reward | Avg tool calls | Avg invalid | Input tok | Output tok |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Model | History | Harness | Tasks | Success | Avg reward | Avg tool calls | Avg invalid | Input tok | Output tok |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in rows:
         lines.append(
-            "| {model} | {tasks} | {success_rate:.1%} | {avg_reward:.3f} | "
-            "{avg_tool_calls:.2f} | {avg_invalid_calls:.2f} | "
-            "{input_tokens} | {output_tokens} |".format(**row)
+            "| {model} | {history_mode} | {harness_variant} | {tasks} | "
+            "{success_rate:.1%} | {avg_reward:.3f} | {avg_tool_calls:.2f} | "
+            "{avg_invalid_calls:.2f} | {input_tokens} | {output_tokens} |".format(**row)
         )
     return "\n".join(lines)
 

@@ -37,7 +37,7 @@ k3lab-eval \
 k3lab-summarize runs/kimi.jsonl runs/deepseek.jsonl runs/qwen.jsonl
 ```
 
-输出 success、平均 reward、tool calls、invalid calls 与 token 使用量。
+输出 success、平均 reward、tool calls、invalid calls 与 token 使用量。聚合键现在包含 **model + history mode + harness variant**，不会再把同一个模型在不同 harness/history 条件下的结果错误混在一起。
 
 ## 3. MiniRepo Coding Environment
 
@@ -135,6 +135,8 @@ done
 
 训练时可以只见 canonical + compact，把 alternate 留作 held-out harness。
 
+每次 `k3lab-eval` 还会在 JSONL 旁写一个 `*.manifest.json`，记录模型名、task 文件 SHA-256、K3Lab 版本、Python/平台、max steps、history mode 与 harness variant。API key 不会写入 manifest。这样后续表格里的每个数字都能追溯到具体任务字节与执行设置。
+
 ## 7. Reward Ablation
 
 先比较行为，再训练：
@@ -221,4 +223,4 @@ AutoResearch 放在训练闭环之后。第一版只允许修改 reward weights�
 
 ---
 
-当前状态：**v0.4 已包含 coding/tool-use environment、secure verifier、reward-hacking case study、history/harness ablation、verified trajectory export、LoRA SFT 与 agentic GRPO 训练入口。真实多模型结果和训练曲线仍待实际 GPU / endpoint 运行后回填。**
+当前状态：**v0.4 已包含 coding/tool-use environment、secure verifier、reward-hacking case study、history/harness ablation、run manifest、verified trajectory export、LoRA SFT 与 agentic GRPO 训练入口。真实多模型结果和训练曲线仍待实际 GPU / endpoint 运行后回填。**

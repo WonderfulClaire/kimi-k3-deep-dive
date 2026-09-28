@@ -19,6 +19,13 @@ from k3lab.providers import OpenAICompatibleProvider
 from k3lab.rewards import CompositeReward, ExactAnswerVerifier
 
 
+REPO_SYSTEM_PROMPT = (
+    "You are a coding agent in a small synthetic repository. "
+    "Inspect files, edit the implementation, and run public tests. "
+    "Finish only when you believe the repository is correct."
+)
+
+
 def _sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -63,6 +70,7 @@ def _score_task(
     max_steps: int,
     history_mode: str,
     harness_variant: str,
+    system_prompt: str | None = None,
 ) -> tuple[Any, float]:
     task_type = task.get("type", "exact_answer")
     rewarder = CompositeReward()
@@ -74,11 +82,7 @@ def _score_task(
             tools=env.registry(variant=harness_variant),
             max_steps=max_steps,
             history_mode=history_mode,
-            system_prompt=(
-                "You are a coding agent in a small synthetic repository. "
-                "Inspect files, edit the implementation, and run public tests. "
-                "Finish only when you believe the repository is correct."
-            ),
+            system_prompt=system_prompt or REPO_SYSTEM_PROMPT,
         )
         trajectory = harness.run(
             task_id=task["id"],
@@ -97,6 +101,7 @@ def _score_task(
             tools=default_registry(),
             max_steps=max_steps,
             history_mode=history_mode,
+            **({"system_prompt": system_prompt} if system_prompt else {}),
         )
         trajectory = harness.run(
             task_id=task["id"],

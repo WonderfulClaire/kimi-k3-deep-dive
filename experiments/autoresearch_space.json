@@ -1,0 +1,6 @@
+{
+  "max_steps": [6, 10],
+  "history_mode": ["full", "no_reasoning"],
+  "harness_variant": ["canonical", "compact"],
+  "prompt_variant": ["baseline", "evidence_first"]
+}

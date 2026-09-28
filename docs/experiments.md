@@ -90,7 +90,7 @@ reward observable to policy  !=  actual task success
 
 ## 5. History Preservation Ablation
 
-v0.4 已经把 history ablation 做成 CLI 参数。
+v0.5 已经把 history ablation 做成 CLI 参数。
 
 完整 round-trip：
 
@@ -215,12 +215,31 @@ secure reward
 | Base + SFT | verified trajectories | TBD | TBD | TBD | TBD |
 | Base + SFT + GRPO | secure env reward | TBD | TBD | TBD | TBD |
 
-## 12. AutoResearch
+## 12. Bounded AutoResearch
 
-AutoResearch 放在训练闭环之后。第一版只允许修改 reward weights、prompt、context policy、tool descriptions、max steps，并自动运行评测和分析失败。
+v0.5 已实现受约束的 AutoResearch controller：
 
-它不能修改 held-out verifier 或答案，否则自动研究会退化成自动刷分。
+~~~bash
+k3lab-autoresearch \
+  --dev-tasks experiments/tasks/repo_patch.jsonl \
+  --heldout-tasks experiments/tasks/repo_patch_heldout.jsonl \
+  --space experiments/autoresearch_space.json \
+  --out-dir runs/autoresearch-001
+~~~
+
+当前 search space 只允许：
+
+- max_steps；
+- full / no_reasoning history；
+- canonical / compact seen harness；
+- 仓库内预定义 prompt variant。
+
+alternate harness 不允许进入 dev search，而是固定留给选择后的 held-out evaluation。candidate 的主排序指标是 secure verifier success，不是 reward；如果 success 相同，再比较 invalid tool calls 和总 tool calls。
+
+controller 会保存所有 candidate trajectory 和 ledger.json，记录 dev / held-out task SHA-256、完整搜索空间、选择规则、被选配置与 held-out 结果。
+
+它不能搜索或修改 held-out task、expected answer、secure verifier 或 reporting rule。完整设计见 [Bounded AutoResearch](autoresearch.md)。
 
 ---
 
-当前状态：**v0.4 已包含 coding/tool-use environment、secure verifier、reward-hacking case study、history/harness ablation、run manifest、verified trajectory export、LoRA SFT 与 agentic GRPO 训练入口。真实多模型结果和训练曲线仍待实际 GPU / endpoint 运行后回填。**
+当前状态：**v0.5 已包含 coding/tool-use environment、secure verifier、reward-hacking case study、history/harness ablation、run manifest、verified trajectory export、LoRA SFT、agentic GRPO 与 bounded AutoResearch controller。真实多模型结果、训练曲线和 AutoResearch endpoint 结果仍待实际 GPU / endpoint 运行后回填。**

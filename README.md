@@ -41,10 +41,11 @@
 | [六、K3 后训练](docs/post-training.md) | SFT / Agentic RL / harness diversification / reward / MOPD |
 | [七、Agentic Post-Training Lab](docs/experiments.md) | same-harness eval / reward hacking / history & harness ablation |
 | [八、SFT / GRPO Training](docs/training.md) | verified trajectory → LoRA SFT → environment-owned reward GRPO |
+| [九、Bounded AutoResearch](docs/autoresearch.md) | dev-only allowlisted search → secure selection → one-shot held-out evaluation |
 
 ---
 
-## 🧪 Agentic Post-Training Lab v0.4
+## 🧪 Agentic Post-Training Lab v0.5
 
 当前仓库已经有一条能跑通的研究链：
 
@@ -78,6 +79,7 @@ src/k3lab/
 ├── replay.py       # deterministic trajectory replay
 ├── summary.py      # aggregate by model + history + harness setting
 ├── export_sft.py   # verified trajectories → SFT JSONL
+├── autoresearch.py  # bounded dev search + one-shot held-out evaluation
 └── train/           # LoRA SFT + environment-owned GRPO
 ```
 
@@ -125,7 +127,7 @@ naive reward PASS  ≠  actual task success
 
 这比只写一句「要防 reward hacking」更有实验价值。
 
-v0.4 已把两类 ablation 和后训练入口直接做成可运行代码：
+v0.5 已把两类 ablation、后训练入口和 bounded AutoResearch controller 做成可运行代码：
 
 ```bash
 # reasoning/history ablation
@@ -165,6 +167,18 @@ k3lab-train-grpo \
 
 详见 [SFT / GRPO Training](docs/training.md)。真实 Kimi / DeepSeek / Qwen 对照结果和训练曲线不提前编造。
 
+AutoResearch 也已经从 TODO 变成一个受约束的实验控制器。它只允许在 dev 上搜索 allowlist 中的 max steps / history / seen harness / prompt variant，用 secure verifier success 选配置；alternate harness 和 held-out task 只在选择完成后评估一次：
+
+~~~bash
+k3lab-autoresearch \
+  --dev-tasks experiments/tasks/repo_patch.jsonl \
+  --heldout-tasks experiments/tasks/repo_patch_heldout.jsonl \
+  --space experiments/autoresearch_space.json \
+  --out-dir runs/autoresearch-001
+~~~
+
+详见 [Bounded AutoResearch](docs/autoresearch.md)。
+
 ---
 
 ## ⚡ 30 秒跑通 K3 API
@@ -198,16 +212,16 @@ print(resp.choices[0].message.content)
 | 完整权重 | ✅ |
 | 技术报告 | ✅ |
 | vLLM / SGLang 等推理支持 | ✅ |
-| 本仓库 Agentic Post-Training Lab v0.4 | ✅ |
+| 本仓库 Agentic Post-Training Lab v0.5 | ✅ |
 | Same-harness 多模型真实结果 | ⏳ 待实测 |
 | 小模型 SFT / GRPO 训练入口 | ✅（真实训练结果待跑） |
-| AutoResearch loop | ⏳ |
+| Bounded AutoResearch controller | ✅（真实 endpoint 结果待跑） |
 
 ---
 
 ## 🌍 English TL;DR
 
-This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. Evaluation runs now emit sidecar manifests with task hashes and ablation settings, and summaries keep model/history/harness conditions separate instead of silently pooling them. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, history/harness ablations, verified-trajectory export for SFT, LoRA SFT, environment-owned agentic GRPO, compositional rewards, and cross-model run summaries. No model benchmark numbers are reported until they are actually run.
+This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. Evaluation runs now emit sidecar manifests with task hashes and ablation settings, and summaries keep model/history/harness conditions separate instead of silently pooling them. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, history/harness ablations, verified-trajectory export for SFT, LoRA SFT, environment-owned agentic GRPO, compositional rewards, cross-model run summaries, and a bounded AutoResearch controller that keeps dev search separate from held-out evaluation. No model benchmark numbers are reported until they are actually run.
 
 ## 🤝 参与贡献
 

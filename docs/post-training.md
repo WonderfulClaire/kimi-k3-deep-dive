@@ -2,6 +2,8 @@
 
 > 核对至 2026-09-27。本文把 K3 技术报告里的后训练主线单独拆出来，并明确区分「K3 官方做法」和「本仓库可复现实验」。后者是教学/研究实现，不声称复现 K3 的训练规模或内部数据。
 
+完整的 token 级推导、手算、实现对照与排障见 [后训练与策略蒸馏](foundation-models/05-posttraining.md)。本页保留后训练主线与现有 Agent Lab 的对应关系。
+
 K3 的价值不只在 2.8T 架构。对 Agent 研究更有意思的是，它把 **SFT、分领域 RL、可组合 harness、可验证环境、生成式 reward model 和多教师 on-policy distillation** 放进了同一条后训练流水线。
 
 ## 1. 官方后训练主线
@@ -33,7 +35,7 @@ K3 把 RL 扩展到三个大域：
 
 ### MOPD：不是把 9 个模型直接做权重平均
 
-最后通过 Multi-Teacher On-Policy Distillation (MOPD) 把九个专家能力收回一个 student。训练时按 domain 和 effort 选择对应 teacher，在 student 自己的 on-policy token 上计算 teacher/student 概率差得到 dense reward，并做 clipping 以稳定训练。
+最后通过 Multi-Teacher On-Policy Distillation (MOPD) 把九个专家能力收回一个 student。训练时按 domain 和 effort 选择对应 teacher，在 student 自己的 on-policy token 上计算对数概率差（log teacher − log student）得到 dense reward，并做 clipping 以稳定训练。
 
 这一步的研究意义很直接：**specialization 和 deployment 不必二选一**。可以先把不同能力分别强化，再在 policy space 里做统一。
 
@@ -70,12 +72,12 @@ flowchart TD
 
 本仓库第一版 reward system 刻意保持透明：
 
-[
+$$
 R =
 w_s R_{\text{success}}
 - w_i N_{\text{invalid tool call}}
 - w_t N_{\text{tool step}}
-]
+$$
 
 先用 deterministic verifier 把数据闭环跑通，再增加 LLM judge / rubric reward。这样每一次收益都能解释，而不是一开始就把所有信号揉成一个黑盒分数。
 
@@ -104,7 +106,7 @@ src/k3lab/
 └── replay.py       # deterministic trajectory replay
 ```
 
-第一阶段故意只放安全、确定性的 calculator task。它不是为了证明哪个模型强，而是先验证：
+早期第一阶段用确定性的 calculator task 打通基本循环。当前主实验已扩展为 MiniRepo coding/tool-use 环境、held-out/integrity verifier、SFT/GRPO 与 bounded AutoResearch；具体入口见 [实验协议](experiments.md)。这条链首先检查：
 
 ```text
 Model

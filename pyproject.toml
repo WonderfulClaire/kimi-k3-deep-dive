@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "k3lab"
-version = "0.5.0"
-description = "A reproducible lab for agent harness, verifiable rewards, bounded AutoResearch, SFT, and agentic GRPO."
+version = "0.6.0"
+description = "A source-grounded Kimi K3 study and executable lab for foundation-model mechanisms and agentic post-training."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -15,7 +15,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
+  "numpy>=1.26",
 ]
+mechanisms = ["numpy>=1.26"]
 train = [
   "datasets>=4.0.0",
   "transformers>=5.2.0",
@@ -38,3 +40,4 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+

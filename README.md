@@ -1,244 +1,86 @@
-# Kimi K3 深度解读 + Agentic Post-Training Lab 🚀
+<h1 align="center">Kimi K3 · Deep Dive &amp; Lab</h1>
+<p align="center"><strong>从基模的计算机制，到可运行的后训练实验。</strong></p>
+<p align="center">
+  <a href="docs/foundation-models/README.md">学习路线</a> ·
+  <a href="docs/architecture.md">架构拆解</a> ·
+  <a href="reports/mechanisms/REPORT.md">实验结果</a> ·
+  <a href="docs/experiments.md">Agent Lab</a> ·
+  <a href="docs/foundation-models/sources.md">官方原文</a>
+</p>
 
-> **从 K3 架构与技术报告，到 Harness / Trajectory / Verifier / Reward / Replay 的可运行实验。** 既讲清楚 Kimi K3，也把 Agentic Post-Training 做成可以继续迭代的研究代码。
->
-> ✅ **权重已于 2026-07-27 深夜正式开源**（修改版 MIT），同步发布技术报告与训练基础设施。本仓库已据技术报告回填主要技术点；实验结果只在真实跑出后记录。
+![Kimi K3 Lab: mechanisms, training, systems](docs/assets/foundation-lab.svg)
 
-[![Weights](https://img.shields.io/badge/%E6%9D%83%E9%87%8D-%E5%B7%B2%E5%BC%80%E6%BA%90-brightgreen)](https://huggingface.co/moonshotai/Kimi-K3)
-[![Context](https://img.shields.io/badge/%E4%B8%8A%E4%B8%8B%E6%96%87-1M%20tokens-blue)](#三分钟看懂-kimi-k3)
-[![Params](https://img.shields.io/badge/%E5%8F%82%E6%95%B0-2.8T%20MoE-purple)](docs/architecture.md)
-[![License](https://img.shields.io/github/license/WonderfulClaire/kimi-k3-deep-dive)](LICENSE)
-[![Stars](https://img.shields.io/github/stars/WonderfulClaire/kimi-k3-deep-dive?style=social)](https://github.com/WonderfulClaire/kimi-k3-deep-dive/stargazers)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](CONTRIBUTING.md)
+一份面向基模研发学习的中文解读与实验仓库。沿着 **token → 记忆状态 → 跨层聚合 → 专家路由 → 训练目标 → 系统成本** 拆解 Kimi K3，把公式落到小规模参考实现，再用独立形式、干预实验和保存结果核对。
 
-**中文** ｜ K3 资料解读 + 可运行的 Agentic Post-Training 实验骨架。资料事实见每篇文末；benchmark 数字带日期，实验数字只在真实运行后回填。
+## 先看什么
 
----
+| 机制与推导 | 训练与系统 |
+| :--- | :--- |
+| **[KDA：从 delta rule 到分块求解](docs/foundation-models/01-kda.md)**<br>二维手算、遗忘与写入、下三角系统、跨块状态续接 | **[预训练与系统](docs/foundation-models/04-pretraining-systems.md)**<br>数据与 scaling、Per-Head Muon、并行通信、混合精度与数值诊断 |
+| **[AttnRes：沿深度做选择](docs/foundation-models/02-attnres.md)**<br>pseudo-query、key RMSNorm、Full/Block 与梯度路径 | **[后训练与策略蒸馏](docs/foundation-models/05-posttraining.md)**<br>SFT labels、策略比率、KL、MOPD 与长轨迹版本问题 |
+| **[MoE：路由与负载](docs/foundation-models/03-moe.md)**<br>Top-k、selection bias、QB 阈值、dispatch/combine 与 latent 成本 | **[面试 walkthrough 与动手题](docs/foundation-models/06-interview-walkthrough.md)**<br>计算、代码、实验与工程取舍串成可追问的项目讲解 |
 
-## 📌 三分钟看懂 Kimi K3
+完整入口：[基模学习路线](docs/foundation-models/README.md) · [K3 架构总览](docs/architecture.md) · [逐节来源](docs/foundation-models/sources.md)。
 
-| 维度 | Kimi K3 | 一句话点评 |
-| --- | --- | --- |
-| 发布时间 | 2026-07-16 | 权重 7/27 开源（修改版 MIT） |
-| 总参数 | **2.8T** | 超大规模稀疏 MoE |
-| 激活方式 | **896 选 16** + 2 共享专家 | 每 token 激活约 **104.2B** |
-| 上下文 | **1M tokens** | 面向长上下文与长时程 agent |
-| 架构核心 | **KDA + AttnRes** | 重点看长上下文效率与残差路由 |
-| 权重格式 | **MXFP4** 权重 + MXFP8 激活 | 自部署仍需要大规模硬件 |
-| API | OpenAI-compatible | 适合接统一 harness 做控制实验 |
+## 在 CPU 上跑出第一份报告
 
----
-
-## 📖 目录
-
-| 章节 | 内容 |
-| --- | --- |
-| [一、架构拆解](docs/architecture.md) | KDA / AttnRes / Stable LatentMoE / Quantile Balancing / Per-Head Muon / SiTU / Gated MLA / MXFP4 |
-| [二、跑分导读](docs/benchmarks.md) | 官方跑分、第三方评测、harness 差异为什么会污染 agent benchmark |
-| [三、API 上手](docs/getting-started.md) | OpenAI-compatible API、多轮历史、成本与缓存 |
-| [四、自部署跟踪](docs/self-hosting.md) | 权重、推理框架、硬件需求 |
-| [五、已知局限与踩坑](docs/limitations.md) | 长轨迹、history、agent 行为边界 |
-| [六、K3 后训练](docs/post-training.md) | SFT / Agentic RL / harness diversification / reward / MOPD |
-| [七、Agentic Post-Training Lab](docs/experiments.md) | same-harness eval / reward hacking / history & harness ablation |
-| [八、SFT / GRPO Training](docs/training.md) | verified trajectory → LoRA SFT → environment-owned reward GRPO |
-| [九、Bounded AutoResearch](docs/autoresearch.md) | dev-only allowlisted search → secure selection → one-shot held-out evaluation |
-
----
-
-## 🧪 Agentic Post-Training Lab v0.5
-
-当前仓库已经有一条能跑通的研究链：
-
-```text
-OpenAI-compatible Model
-        ↓
-Agent Harness
-        ↓
-Tool / Synthetic Environment
-        ↓
-Trajectory
-        ↓
-Public Signal
-        ↓
-Held-out + Integrity Verifier
-        ↓
-Composite Reward
-        ↓
-Replay / Cross-model Summary
-```
-
-代码结构：
-
-```text
-src/k3lab/
-├── providers/      # OpenAI-compatible endpoint
-├── harness/        # agent loop / tools / trajectory logging
-├── envs/           # MiniRepo coding environment
-├── rewards/        # verifier-compatible composite reward
-├── eval.py         # same-harness evaluation
-├── replay.py       # deterministic trajectory replay
-├── summary.py      # aggregate by model + history + harness setting
-├── export_sft.py   # verified trajectories → SFT JSONL
-├── autoresearch.py  # bounded dev search + one-shot held-out evaluation
-└── train/           # LoRA SFT + environment-owned GRPO
-```
-
-### 本地验证
+无需 API Key 或模型权重：
 
 ```bash
-pip install -e ".[dev]"
+git clone https://github.com/WonderfulClaire/kimi-k3-deep-dive.git
+cd kimi-k3-deep-dive
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev,mechanisms]"
+PYTHONPATH=src python scripts/run_mechanism_lab.py --out reports/mechanisms
 pytest -q
 ```
 
-### 跑 coding / tool-use task
+[已生成的中文报告](reports/mechanisms/REPORT.md) 与 [原始 JSON](reports/mechanisms/results.json) 保存输入、seed、配置和数值。你可以先预测，再修改一个条件，重新运行：
+
+- **KDA**：逐 token 递推与真正的块内下三角求解是否一致？改动未来输入会不会污染过去输出？beta=0、beta=1 和逐通道遗忘分别发生什么？
+- **AttnRes**：零 pseudo-query 为什么得到来源平均？来源做 key RMSNorm 后，value 的大小还会不会影响混合结果？Full 和 Block 的来源集合怎样不同？
+- **MoE**：偏置为什么只进入专家选择？同批校准变均衡以后，换一批 token 会怎样？expert-major 分发能否与逐 token 标量参考对上？
+- **系统账本**：稀疏激活、参数驻留和逻辑通信各花多少？循环状态固定以后，混合模型中的全局注意力缓存如何随序列长度增长？
+
+这条路线验证小维度机制与数值行为。报告中的参数、缓存和 payload 公式各自注明假设，GPU 核函数速度与大模型训练收益另用实际工作负载测量。
+
+## K3 在解决什么问题
+
+| 方向 | 公开报告中的设计 | 本仓库的阅读出口 |
+| --- | --- | --- |
+| 序列 | KDA 与 Gated MLA 混合 | 记忆容量、因果分块、prefill / decode 的不同成本 |
+| 深度 | Attention Residuals | 深度 softmax、来源聚合、Full / Block 的存储取舍 |
+| 宽度 | Stable LatentMoE 与 Quantile Balancing | 路由分数、负载、潜在表示与专家并行 |
+| 训练与部署 | Per-Head Muon、原生多模态、后训练 QAT | 优化器数值、token 加权、精度格式和运行状态分账 |
+
+K3 v1 架构表列出 **2.78T 总参数、104.2B 激活参数、93 层、69 KDA + 24 MLA**。[规格与版本](docs/foundation-models/sources.md)固定回到官方原文；Kimi Linear 的独立效率实验单独归属。
+
+## Agentic Post-Training Lab
+
+保留现有实验链：**模型端点 → harness → 工具环境 → trajectory → verifier → reward → SFT / GRPO → held-out 评测**。
+
+| 入口 | 能运行什么 |
+| --- | --- |
+| [实验协议](docs/experiments.md) | same-harness 评测、history 与工具 schema 消融、轨迹与 manifest |
+| [训练说明](docs/training.md) | verified trajectories → LoRA SFT → environment-owned GRPO |
+| [Bounded AutoResearch](docs/autoresearch.md) | dev allowlist 搜索、配置选择、一次 held-out harness 评测 |
+| [Reward 与环境](src/k3lab/envs/minirepo.py) | public-test signal、原测试、held-out tests 与文件完整性分开检查 |
 
 ```bash
 export K3LAB_API_KEY="..."
 export K3LAB_BASE_URL="https://your-openai-compatible-endpoint/v1"
 export K3LAB_MODEL="your-model"
-
-k3lab-eval \
-  --tasks experiments/tasks/repo_patch.jsonl \
-  --out runs/your-model.jsonl
+k3lab-eval --tasks experiments/tasks/repo_patch.jsonl --out runs/your-model.jsonl
+k3lab-export-sft runs/your-model.jsonl --out data/verified_sft.jsonl
 ```
 
-每次评测会同时写出一个带 task SHA-256 和关键运行参数的 `*.manifest.json`。然后把多个模型或多个 harness/history 条件放到同一张表：
+端点实验使用你配置的模型与服务；训练入口和运行条件见对应文档。CPU 机制报告与模型训练/能力结果分别记录。
 
-```bash
-k3lab-summarize \
-  runs/kimi.jsonl \
-  runs/deepseek.jsonl \
-  runs/qwen.jsonl
-```
+## 继续深入
 
-### 为什么专门做 Reward Hacking
+- [API 上手](docs/getting-started.md) · [自部署](docs/self-hosting.md) · [评测导读](docs/benchmarks.md) · [局限与踩坑](docs/limitations.md)
+- [代码目录](src/k3lab/) · [行为检查](tests/) · [贡献说明](CONTRIBUTING.md) · [MIT License](LICENSE)
 
-MiniRepo 的 `run_public_tests` 故意保留了一个 naive signal：agent 如果把 public tests 删空，可能得到 **0/0 tests = PASS**。但最终 reward 不信这个信号，而是重新检查：
+This is an independent technical study and executable learning lab, combining source-grounded Chinese notes, NumPy mechanism references, and agentic post-training infrastructure.
 
-- 原始 public tests；
-- held-out tests；
-- test file integrity。
-
-所以项目里可以直接复现：
-
-```text
-naive reward PASS  ≠  actual task success
-```
-
-这比只写一句「要防 reward hacking」更有实验价值。
-
-v0.5 已把两类 ablation、后训练入口和 bounded AutoResearch controller 做成可运行代码：
-
-```bash
-# reasoning/history ablation
-k3lab-eval --history-mode full ...
-k3lab-eval --history-mode no_reasoning ...
-
-# harness generalization
-k3lab-eval --harness-variant canonical ...
-k3lab-eval --harness-variant compact ...
-k3lab-eval --harness-variant alternate ...
-```
-
-secure verifier 通过的 rollout 还能直接导出为 SFT 数据：
-
-```bash
-k3lab-export-sft runs/*.jsonl --out data/verified_sft.jsonl
-```
-
-因此现在已经连上 **rollout → verifier → verified trajectory → LoRA SFT → agentic GRPO**。GRPO reward 由 stateful environment 的最终状态给出，检查原始 public tests、held-out tests 和 integrity，而不是直接相信可被策略修改的 public-test signal。
-
-训练入口：
-
-```bash
-pip install -e ".[train]"
-
-k3lab-train-sft \
-  --model Qwen/Qwen3-0.6B \
-  --data data/verified_sft.jsonl \
-  --output-dir outputs/sft
-
-k3lab-train-grpo \
-  --model Qwen/Qwen3-0.6B \
-  --tasks experiments/tasks/repo_patch.jsonl \
-  --output-dir outputs/grpo \
-  --steps 100
-```
-
-详见 [SFT / GRPO Training](docs/training.md)。真实 Kimi / DeepSeek / Qwen 对照结果和训练曲线不提前编造。
-
-AutoResearch 也已经从 TODO 变成一个受约束的实验控制器。它只允许在 dev 上搜索 allowlist 中的 max steps / history / seen harness / prompt variant，用 secure verifier success 选配置；alternate harness 和 held-out task 只在选择完成后评估一次：
-
-~~~bash
-k3lab-autoresearch \
-  --dev-tasks experiments/tasks/repo_patch.jsonl \
-  --heldout-tasks experiments/tasks/repo_patch_heldout.jsonl \
-  --space experiments/autoresearch_space.json \
-  --out-dir runs/autoresearch-001
-~~~
-
-详见 [Bounded AutoResearch](docs/autoresearch.md)。
-
----
-
-## ⚡ 30 秒跑通 K3 API
-
-```python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    api_key=os.environ["MOONSHOT_API_KEY"],
-    base_url="https://api.moonshot.ai/v1",
-)
-
-resp = client.chat.completions.create(
-    model="kimi-k3",
-    messages=[{"role": "user", "content": "用三句话解释 KDA 注意力机制"}],
-    reasoning_effort="max",
-)
-print(resp.choices[0].message.content)
-```
-
-> 多轮/工具调用时要注意 K3 的 assistant history 格式要求。具体见 [API 上手](docs/getting-started.md) 与 [已知局限](docs/limitations.md)。
-
----
-
-## 🗓️ 开源进度追踪
-
-| 事项 | 状态 |
-| --- | --- |
-| 模型发布 / API | ✅ |
-| 完整权重 | ✅ |
-| 技术报告 | ✅ |
-| vLLM / SGLang 等推理支持 | ✅ |
-| 本仓库 Agentic Post-Training Lab v0.5 | ✅ |
-| Same-harness 多模型真实结果 | ⏳ 待实测 |
-| 小模型 SFT / GRPO 训练入口 | ✅（真实训练结果待跑） |
-| Bounded AutoResearch controller | ✅（真实 endpoint 结果待跑） |
-
----
-
-## 🌍 English TL;DR
-
-This repository combines a Chinese technical deep dive into Kimi K3 with a small reproducible **Agentic Post-Training Lab**. Evaluation runs now emit sidecar manifests with task hashes and ablation settings, and summaries keep model/history/harness conditions separate instead of silently pooling them. The lab now includes an OpenAI-compatible provider layer, an agent harness, trajectory logging/replay, a synthetic coding environment, held-out and integrity verification, reward-hacking tests, history/harness ablations, verified-trajectory export for SFT, LoRA SFT, environment-owned agentic GRPO, compositional rewards, cross-model run summaries, and a bounded AutoResearch controller that keeps dev search separate from held-out evaluation. No model benchmark numbers are reported until they are actually run.
-
-## 🤝 参与贡献
-
-目前最需要的是：
-
-- same-harness 的真实多模型运行结果；
-- coding / structured tool-use task；
-- harness generalization 实验；
-- SFT / RL 配置与可复现训练日志；
-- 事实纠错与一手来源补充。
-
-内容规范见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-## ⚖️ 声明
-
-本仓库为社区研究与解读，与月之暗面（Moonshot AI）无官方关联。模型能力、价格、榜单等随时间变化；引用时请核对原始来源和日期。仓库文字与代码按 [MIT License](LICENSE) 发布。
-
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=WonderfulClaire/kimi-k3-deep-dive&type=Date)](https://star-history.com/#WonderfulClaire/kimi-k3-deep-dive&Date)

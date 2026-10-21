@@ -1,3 +1,4 @@
-"""K3Lab: reproducible infrastructure for agentic post-training experiments."""
+"""K3Lab: executable foundation-model mechanisms and agentic post-training."""
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
+

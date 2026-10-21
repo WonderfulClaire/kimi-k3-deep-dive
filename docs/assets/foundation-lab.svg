@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="440" viewBox="0 0 1440 440" role="img" aria-labelledby="title desc">
+  <title id="title">Kimi K3 Lab</title>
+  <desc id="desc">A token passes through three complementary model mechanisms: memory with KDA, depth with Attention Residuals, and experts with MoE. Mechanisms, training, and systems.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111d33"/><stop offset="1" stop-color="#0b1425"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#6be4d0"/><stop offset="1" stop-color="#b49aff"/></linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#b5c5e0" stroke-opacity=".045"/></pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M1 1L6 4L1 7" fill="none" stroke="#6e86ab" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="arrowTeal" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M1 1L6 4L1 7" fill="none" stroke="#65cbbb" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  </defs>
+  <rect x="1" y="1" width="1438" height="438" rx="26" fill="url(#background)" stroke="#2b3d59"/>
+  <rect x="794" y="2" width="644" height="436" rx="25" fill="url(#grid)"/>
+  <path d="M42 40H98" stroke="url(#accent)" stroke-width="3" stroke-linecap="round"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="114" y="45" fill="#91a8c6" font-size="15" font-weight="600" letter-spacing="2.6">FOUNDATION MODEL STUDY</text>
+    <text x="39" y="119" fill="#f3f7ff" font-size="67" font-weight="700" letter-spacing="-1.8">Kimi K3 <tspan fill="#71e0cf">Lab</tspan></text>
+    <text x="43" y="153" fill="#a7bbd6" font-size="22">From one token to a working model</text>
+    <text x="1393" y="76" text-anchor="end" fill="#778eaf" font-size="15" letter-spacing="1.8">READ  /  DERIVE  /  IMPLEMENT</text>
+  </g>
+  <g fill="none" stroke="#6e86ab" stroke-width="1.7" marker-end="url(#arrow)"><path d="M206 276H241"/><path d="M613 276H639"/><path d="M1007 276H1031"/></g>
+  <rect x="43" y="232" width="158" height="86" rx="17" fill="#17273e" stroke="#416180"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" text-anchor="middle">
+    <text x="122" y="256" fill="#88a1c2" font-size="12" font-weight="600" letter-spacing="2">INPUT</text>
+    <text x="122" y="291" fill="#e9f2ff" font-size="29" font-weight="600">Token</text>
+  </g>
+  <rect x="254" y="189" width="359" height="176" rx="18" fill="#122637" stroke="#3c756f"/>
+  <rect x="648" y="189" width="359" height="176" rx="18" fill="#1b213b" stroke="#6c5d95"/>
+  <rect x="1042" y="189" width="354" height="176" rx="18" fill="#1b2337" stroke="#6d688b"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="275" y="219" fill="#86d9ca" font-size="16" font-weight="600" letter-spacing="1.6">MEMORY</text>
+    <text x="275" y="261" fill="#ecfaf7" font-size="35" font-weight="650">KDA</text>
+    <text x="591" y="254" text-anchor="end" fill="#9dbdbb" font-size="16">Retain · update · read</text>
+    <text x="669" y="219" fill="#b9a5f1" font-size="16" font-weight="600" letter-spacing="1.6">DEPTH</text>
+    <text x="669" y="261" fill="#f1edff" font-size="35" font-weight="650">AttnRes</text>
+    <text x="986" y="254" text-anchor="end" fill="#b1a8d0" font-size="16">Select across layers</text>
+    <text x="1063" y="219" fill="#c0b5e8" font-size="16" font-weight="600" letter-spacing="1.6">EXPERTS</text>
+    <text x="1063" y="261" fill="#f2efff" font-size="35" font-weight="650">MoE</text>
+    <text x="1375" y="254" text-anchor="end" fill="#b0b8d1" font-size="16">Route · transform · combine</text>
+  </g>
+  <g stroke="#4c9289" stroke-width="1.2">
+    <rect x="276" y="289" width="59" height="52" rx="8" fill="#172f3f"/>
+    <path d="M296 290V340M315 290V340M277 306H334M277 323H334" stroke="#355b61"/>
+    <rect x="277" y="307" width="18" height="15" fill="#397f7e" stroke="none"/>
+    <rect x="316" y="290" width="18" height="15" fill="#295568" stroke="none"/>
+    <rect x="521" y="289" width="59" height="52" rx="8" fill="#173b43"/>
+    <path d="M541 290V340M560 290V340M522 306H579M522 323H579" stroke="#3b6a6b"/>
+    <rect x="522" y="307" width="18" height="15" fill="#5ec8b8" stroke="none"/>
+    <rect x="542" y="324" width="17" height="16" fill="#6a8799" stroke="none"/>
+  </g>
+  <path d="M350 315H402M452 315H505" fill="none" stroke="#65cbbb" stroke-width="1.6" marker-end="url(#arrowTeal)"/>
+  <circle cx="426" cy="315" r="21" fill="#17383e" stroke="#4a9f94"/>
+  <path d="M417 315H435M426 306V324" stroke="#83e0d1" stroke-width="1.8" stroke-linecap="round"/>
+  <g stroke="#7667a3" stroke-width="1.1">
+    <rect x="670" y="290" width="41" height="49" rx="6" fill="#2c2a48"/>
+    <rect x="725" y="290" width="41" height="49" rx="6" fill="#333050"/>
+    <rect x="780" y="290" width="41" height="49" rx="6" fill="#3e365b"/>
+    <rect x="835" y="290" width="41" height="49" rx="6" fill="#49406b"/>
+  </g>
+  <g fill="none" stroke="#8071af" stroke-width="1.2" stroke-linecap="round">
+    <path d="M711 298Q900 276 945 306M766 307Q902 291 945 310M821 321Q904 324 945 315M876 332Q914 335 945 320"/>
+  </g>
+  <circle cx="964" cy="314" r="20" fill="#342d52" stroke="#a892e8"/>
+  <path d="M956 307L963 314L956 321M963 314H973" fill="none" stroke="#d0beff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="1085" cy="315" r="19" fill="#2e2c48" stroke="#8e7bb8"/>
+  <path d="M1077 309L1085 315L1077 321M1085 315H1092" fill="none" stroke="#c3b0ef" stroke-width="1.6" stroke-linecap="round"/>
+  <g fill="none" stroke-width="1.2">
+    <path d="M1104 315L1150 299M1104 315L1150 331" stroke="#b09adb"/>
+    <path d="M1104 315L1210 299M1104 315L1210 331M1104 315L1270 299M1104 315L1270 331M1104 315L1330 299M1104 315L1330 331" stroke="#4c4b68" stroke-dasharray="3 4"/>
+  </g>
+  <g stroke="#5e587a" stroke-width="1">
+    <rect x="1146" y="285" width="42" height="26" rx="5" fill="#65518a" stroke="#b69ae9"/>
+    <rect x="1146" y="320" width="42" height="26" rx="5" fill="#294750" stroke="#66b6ad"/>
+    <rect x="1206" y="285" width="42" height="26" rx="5" fill="#252b41"/>
+    <rect x="1206" y="320" width="42" height="26" rx="5" fill="#252b41"/>
+    <rect x="1266" y="285" width="42" height="26" rx="5" fill="#252b41"/>
+    <rect x="1266" y="320" width="42" height="26" rx="5" fill="#252b41"/>
+    <rect x="1326" y="285" width="42" height="26" rx="5" fill="#252b41"/>
+    <rect x="1326" y="320" width="42" height="26" rx="5" fill="#252b41"/>
+  </g>
+  <path d="M43 398H470M970 398H1396" stroke="#283d59" stroke-width="1"/>
+  <text x="720" y="405" text-anchor="middle" fill="#a7b9d5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="22" letter-spacing="1.8">Mechanisms · Training · Systems</text>
+</svg>
